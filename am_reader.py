@@ -3,6 +3,7 @@
 import pyvisa
 import time
 import numpy
+import re
 
 # define resource manager
 rm = pyvisa.ResourceManager()
@@ -37,7 +38,8 @@ def getDigitalReading( am ):
 def getAnalogReading( am ):
   ret = am.query("READ?")
   #print( ret )
-  return float(ret[4:])
+  num_str=re.search(r'(\+|-)*\d+\w(\+|-)*\d+',ret).group()
+  return float(num_str)
 
 def getAvgStdev(readingfunc, am, n=10 ):
   """calculate average and stdev for n measurements
@@ -55,8 +57,8 @@ def getAvgStdev(readingfunc, am, n=10 ):
   stdev=numpy.std(readings)
   return (avg,stdev)
 
-initialize(ammeter1, "2e-5")
-initialize(ammeter2, "2e-5")
+#initialize(ammeter1, "2e-5")
+#initialize(ammeter2, "2e-5")
 
 #print( getAvgStdev(getDigitalReading, ammeter1, 10) )
 #print( getAvgStdev(getAnalogReading, ammeter2, 10) )

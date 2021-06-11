@@ -101,10 +101,14 @@ class DAQ(object):
     
             #check if path is empty
             if os.path.exists( save_path ):
-                if input( "File already exists. enter o to overwrite\n" ) == "o":
+                key = input( "File already exists. o:overwrite, q: don't save\n" )
+                if key.lower()  == "o":
                     pass
+                elif key.lower() == "q":
+                    print("Data not saved")
+                    return False
                 else:
-                    self.SaveDataFrame(df, self.curr_save_path)
+                    self.SaveDataFrame(df, None)
                     return
             #df.to_exel( save_path )
             df.to_csv( save_path, index=False )
@@ -270,15 +274,16 @@ class DAQ(object):
     #DAQ proper
     # want to move 
     def RunDAQ(self, ID, n_rep = 5, save_dir="./data", prefix="fiber", suffix=None):
-        ID=str(ID)
+        sID="%06d"%ID
         self.SetSaveDirectory(save_dir)
-        fname = "_".join([prefix,ID])
+        fname = "_".join([prefix,sID])
         if suffix is not None: fname = "_".join([fname,suffix])
         fname+=".csv"
         path = self.save_dir+"/"+fname
 
-        #Initialize board
+        #Initialize board and ammeter
         self.InitializeBoard()
+        self.InitializeAmmeters()
 
         #Reset Dataframe
         self.SetRepitition(n_rep)
@@ -333,10 +338,12 @@ class DAQ(object):
         #Move board home
         self.MoveBoardHome()
 
+        return 0
+
 
 
 
 
 with_board=True
 daq = DAQ()
-print(daq.curr_dataframe)
+#print(daq.curr_dataframe)
