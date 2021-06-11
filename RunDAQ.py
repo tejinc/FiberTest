@@ -8,10 +8,9 @@ if __name__=="__main__":
     td = today.strftime("%Y%m%d")
 
     parser = argparse.ArgumentParser(description='Process Fiber Test')
-    parser.add_argument('--id', dest='id', type=int,  default=-1,
-                        help='sum the integers (default: find the max)')
-    parser.add_argument('--suffix', dest='suffix', default="", help='Suffix to file name prefix_id_suffix.csv')
-    parser.add_argument('--prefix', dest='prefix', default="fibertest", help='Prefix to file name prefix_id_suffix.csv')
+    parser.add_argument('--id', dest='id', type=int,  default=-1, help='Set fiber ID, default to -1')
+    parser.add_argument('--suffix', dest='suffix', default="", help='Suffix to file name prefix_id_suffix.csv, default to None')
+    parser.add_argument('--prefix', dest='prefix', default="fibertest", help='Prefix to file name prefix_id_suffix.csv, default to fibertest')
 
     default_path="./data/%s/"%td
     parser.add_argument('--save_dir', dest='save_dir', default=default_path, help='Saving directory, default to %s'%default_path)
