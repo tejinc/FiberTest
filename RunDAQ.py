@@ -1,5 +1,4 @@
 #!/usr/local/bin/python3.8
-import DAQ
 import argparse
 from datetime import date
 
@@ -25,6 +24,7 @@ if __name__=="__main__":
 
     print(args.id)
 
+    import DAQ
     daq = DAQ.DAQ(args.rep)
     daq.n_measurements = args.n
     daq.fiber_id = args.id
