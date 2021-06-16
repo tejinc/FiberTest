@@ -65,16 +65,18 @@ class DAQ(object):
         self.fiber_id = ID
 
     #Dataframe operation
-    def ResetDataFrame(self):
+    def ResetDataFrame(self, rows=9):
         """Reset dataframe to original mode.
            set status to 0
+           Default number of rows is 9
         """
         columns = self.curr_dataframe.columns
         self.curr_dataframe.drop(columns,axis=1,inplace=True)
-        columns=self.df_pmt_columns+self.df_det_columns+self.df_res_columns
+        columns=["pos","pos_id"]+self.df_pmt_columns+self.df_det_columns+self.df_res_columns
 
+        self.curr_dataframe = pandas.DataFrame()
         for name in columns:
-            self.curr_dataframe[name]=np.array( [0.]*(int(ft.num_intrv)+1), float )
+            self.curr_dataframe[name]=np.array( [0.]*rows, float )
 
         self.curr_df_status = 0
         self.curr_save_status= False
@@ -101,7 +103,7 @@ class DAQ(object):
     
             #check if path is empty
             if os.path.exists( save_path ):
-                key = input( "File already exists. o:overwrite, q: don't save\n" )
+                key = input( "File already exists. n: specify new path, o:overwrite, q: quit without saving\n" )
                 if key.lower()  == "o":
                     pass
                 elif key.lower() == "q":
@@ -130,11 +132,12 @@ class DAQ(object):
 
 
 
-    def CreateNewDataFrame(self, fullpath):
+    def CreateNewDataFrame(self, fullpath, rows=9):
         """Create new dataframe (actually reset current dataframe)
 
         Args:
             fname (str): full path
+            rows (int): number of rows in each column
 
         Returns:
             bool: True or False
@@ -144,7 +147,7 @@ class DAQ(object):
             if save.lower() == "y":
                 self.SaveDataFrame(self.curr_dataframe)
         
-        self.ResetDataFrame()
+        self.ResetDataFrame(rows)
         self.curr_save_path = fullpath
         return True
         
@@ -273,7 +276,7 @@ class DAQ(object):
 
     #DAQ proper
     # want to move 
-    def RunDAQ(self, ID, n_rep = 5, save_dir="./data", prefix="fiber", suffix=None):
+    def RunDAQ(self, ID, n_rep = 5, save_dir="./data", prefix="fiber", suffix=None, positions=None):
         sID="%06d"%ID
         self.SetSaveDirectory(save_dir)
         fname = "_".join([prefix,sID])
@@ -285,15 +288,22 @@ class DAQ(object):
         self.InitializeBoard()
         self.InitializeAmmeters()
 
-        #Reset Dataframe
-        self.SetRepitition(n_rep)
-        self.CreateNewDataFrame(path)
+        sleep(5)
 
         #Step back
         # repeating measurements N times
+        run_range = range(9)[::-1] if positions == None else positions
         rep_count = 1
+        print("Run Ranges are: ", run_range)
+
+        #Reset Dataframe
+        self.SetRepitition(n_rep)
+        self.CreateNewDataFrame(path,len(run_range))
+
+
+
         while( rep_count <= self.run_reptition):
-            self.MoveBoardToPosition(int(ft.num_intrv))
+            self.MoveBoardToPosition(run_range[0])
             sleep(5)
 
             print("rep %d"%rep_count)
@@ -303,8 +313,14 @@ class DAQ(object):
 
             print(pmt_name, det_name)
             #Step and record measurement
-            for i in range(int(ft.num_intrv)+1):
-                print("At position", i)
+            for i in range(len(run_range)):
+                bp = run_range[i]
+
+                #move laser
+                print("Moving laser to %d ..."%bp)
+                self.MoveBoardToPosition(bp)
+                sleep(1)
+                print("Done")
                 # take data
                 print("Aquiring Reading...")
                 digital, analog = self.ReadAmmeters(self.n_measurements)
@@ -314,10 +330,9 @@ class DAQ(object):
                 print("Digital: ", digital[0], "Analog: ", analog[0])
                 self.curr_dataframe[pmt_name][i] = digital[0]
                 self.curr_dataframe[det_name][i] = analog[0]
+                self.curr_dataframe["pos"][i] = self.board_pos
+                self.curr_dataframe["pos_id"][i] = self.board_pos_id
 
-                #move laser
-                self.MoveTowardsPMT()
-                sleep(1)
             rep_count+=1
 
 

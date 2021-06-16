@@ -17,11 +17,24 @@ if __name__=="__main__":
 
     parser.add_argument('--rep', dest='rep', default=5, type=int, help='Number of rail passes')
     parser.add_argument('--n', dest='n', default=5, type=int, help='Number of accumulated measurements')
-
+    parser.add_argument('--pos', dest='str_pos', default=None,help="Positions for one pass")
+    parser.add_argument('--config',dest='config_file',default="config/default.txt", help="An external configuration file to set the positions, if --pos is set, --pos take precedence.")
 
     args = parser.parse_args()
 
     print(args.id)
+
+    positions = list()
+    if args.str_pos is not None:
+        positions = list(map(int,args.str_pos.split(",")))
+        print("Set positions from command line")
+    else:
+        with open(args.config_file) as f:
+            positions = list( map(int, f.readline().split(",")))
+            print("Set positions from config file %s"%args.config_file)
+    print("Positions are %s"%(",".join(map(str,positions))))
+        
+
 
     import DAQ
     daq = DAQ.DAQ(args.rep)
@@ -29,5 +42,5 @@ if __name__=="__main__":
     daq.fiber_id = args.id
     daq.SetSaveDirectory( args.save_dir )
     suffix = None if args.suffix == "" else args.suffix
-    daq.RunDAQ(args.id, args.rep, args.save_dir, args.prefix, suffix)
+    daq.RunDAQ(args.id, args.rep, args.save_dir, args.prefix, suffix,positions)
 
