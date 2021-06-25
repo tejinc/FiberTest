@@ -11,3 +11,5 @@ am_reader contains functions to read a pair of ammeter readings.
 DAQ integrates the functionality of ft_arduino, am_reader and save the output to csv format. 
 
 RunDAQ.py invokes DAQ to perform measurment of a WLS fibers
+
+protofit.ino: Arduino Uno software optimized by Dave Munson of Universiy of Rochester. 
